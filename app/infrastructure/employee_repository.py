@@ -1,6 +1,8 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import Column, Integer, String, DECIMAL, Boolean, TIMESTAMP, Date, ForeignKey, text
 from app.domain.employee import Employee
+from app.application.employee.employee_dto import EmployeeCreateDTO
 from app.infrastructure.database import Base
 from typing import Optional
 
@@ -14,7 +16,7 @@ class EmployeeModel(Base):
     documento = Column(String(50), nullable=True)
     correo = Column(String(150), nullable=True)
     telefono = Column(String(50), nullable=True)
-    area_id = Column(Integer, ForeignKey("areas.id", ondelete="SET NULL", onupdate="CASCADE"), nullable=True)
+    area_id = Column(Integer, nullable=True)
     hire_date = Column(Date, nullable=True)
     salary_base = Column(DECIMAL(12, 2), nullable=False, server_default=text("0.00"))
     contract_type = Column(String(60), nullable=True)
@@ -27,6 +29,9 @@ class EmployeeModel(Base):
 class EmployeeRepository:
     def __init__(self, db: Session):
         self.db = db
+
+    
+    # READ
 
     def get_all(self) -> list[Employee]:
         results = self.db.query(EmployeeModel).all()
@@ -62,7 +67,10 @@ class EmployeeRepository:
         results = query.all()
         return [self._map_to_entity(row) for row in results]
     
-
+    def find_by_employee_number(self, employee_number: int):
+        empleado = self.db.query(EmployeeModel).filter(EmployeeModel.employee_number == employee_number).first()
+        return empleado
+    
     
     def _map_to_entity(self, row: EmployeeModel) -> Employee:
         return Employee(
@@ -81,3 +89,69 @@ class EmployeeRepository:
             created_at=row.created_at,
             updated_at=row.updated_at,
         )
+
+    # CREATE
+
+    def create(self, dto: EmployeeCreateDTO) -> Employee:
+        new_employee = EmployeeModel(
+            employee_number=dto.employee_number,
+            nombre=dto.nombre,
+            documento=dto.documento,
+            correo=dto.correo,
+            telefono=dto.telefono,
+            area_id=dto.area_id,
+            hire_date=dto.hire_date,
+            salary_base=dto.salary_base,
+            contract_type=dto.contract_type,
+            bank_account=dto.bank_account,
+            active=dto.active,
+        )
+        self.db.add(new_employee)
+        self.db.commit()
+        self.db.refresh(new_employee)
+        return self._map_to_entity(new_employee)
+    
+    # UPDATE
+
+    def update(self, employee_id: int, dto) -> Employee:
+        empleado = self.db.query(EmployeeModel).filter(EmployeeModel.id == employee_id).first()
+
+        if not empleado:
+            raise HTTPException(status_code=404, detail="Empleado no encontrado")
+
+        # Actualizar solo los campos enviados en el DTO
+        for field, value in dto.dict(exclude_unset=True).items():
+            setattr(empleado, field, value)
+
+        self.db.commit()
+        self.db.refresh(empleado)
+
+        return self._map_to_entity(empleado)
+    
+
+    def activate(self, employee_id: int):
+        empleado = self.db.query(EmployeeModel).filter(EmployeeModel.id == employee_id).first()
+
+        if not empleado:
+            return False
+        
+        empleado.active = True
+
+        self.db.commit()
+        self.db.refresh(empleado)
+        return True
+
+    
+    # DELETE
+
+    def desactivate(self, employee_id: int):
+        empleado = self.db.query(EmployeeModel).filter(EmployeeModel.id == employee_id).first()
+
+        if not empleado:
+            return False
+
+        empleado.active = False
+
+        self.db.commit()
+        self.db.refresh(empleado)
+        return True
