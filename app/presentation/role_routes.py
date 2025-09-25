@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.application.role_service import RoleService
+from app.application.role.role_service import RoleService
 from app.infrastructure.role_repository import RoleRepository
 from app.infrastructure.database import get_db
 
 router = APIRouter()
 
 
-@router.get("/roles")
+@router.get("/list-roles")
 def list_roles(db: Session = Depends(get_db)):
     repo = RoleRepository(db)   # ✅ aquí pasamos la sesión
     service = RoleService(repo)
