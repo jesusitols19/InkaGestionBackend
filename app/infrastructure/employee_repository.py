@@ -70,7 +70,10 @@ class EmployeeRepository:
     def find_by_employee_number(self, employee_number: int):
         empleado = self.db.query(EmployeeModel).filter(EmployeeModel.employee_number == employee_number).first()
         return empleado
-    
+
+    def find_by_employee_id(self, employee_id: int):
+        empleado = self.db.query(EmployeeModel).filter(EmployeeModel.id == employee_id).first()
+        return empleado
     
     def _map_to_entity(self, row: EmployeeModel) -> Employee:
         return Employee(
