@@ -95,6 +95,13 @@ class AttendanceRecordRepository:
         ).order_by(AttendanceRecordModel.record_date.desc(), AttendanceRecordModel.time_in.desc()).limit(limit).all()
         return rows
     
+    # def get_count_tardiness_by_employee(self, employee_id: int, period_id: int) -> int:
+    #     return self.db.query(AttendanceRecordModel).filter(
+    #         AttendanceRecordModel.employee_id == employee_id,
+    #         AttendanceRecordModel.record_date.between(period_id.start_date, period_id.end_date),
+    #         AttendanceRecordModel.status == "TARDANZA"
+    #     ).count()
+    
 
     # Crear registro de inicio
     def create_start(self, employee_id: int, supervisor_user_id: int, timestamp: datetime, status: str, justification: Optional[str] = None):

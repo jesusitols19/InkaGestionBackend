@@ -6,6 +6,8 @@ from app.presentation.employee_routes import router as employee_router
 from app.presentation.auth_routes import router as auth_router
 from app.presentation.user_routes import router as user_router
 from app.presentation.attendance_record_routes import router as attendance_record_router
+from app.presentation.payroll_periods_routes import router as payroll_period_router
+from app.presentation.payroll_routes import router as payroll_router
 from app.helpers.jsend_response import jsend_error
 
 app = FastAPI()
@@ -36,3 +38,5 @@ app.include_router(employee_router)
 app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(attendance_record_router)
+app.include_router(payroll_period_router)
+app.include_router(payroll_router)
