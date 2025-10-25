@@ -4,11 +4,11 @@ from typing import Optional
 
 @dataclass
 class Shift:
-    id: int
-    name: str
-    start_time: time
-    end_time: time
-    tolerance_minutes: int
-    description: Optional[str]
-    created_by: Optional[int]
-    created_at: Optional[datetime]
+    id: Optional[int] = None
+    name: str = None
+    start_time: time = None
+    end_time: time = None
+    tolerance_minutes: int = None
+    description: Optional[str] = None
+    created_by: Optional[int] = None
+    created_at: Optional[datetime] = None

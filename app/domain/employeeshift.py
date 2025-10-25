@@ -4,8 +4,8 @@ from typing import Optional
 
 @dataclass
 class EmployeeShift:
-    id: int
-    employee_id: int
-    shift_id: int
-    start_date: date
-    end_date: Optional[date]
+    id: Optional[int] = None
+    employee_id: int = None
+    shift_id: int = None
+    start_date: date = None
+    end_date: Optional[date] = None

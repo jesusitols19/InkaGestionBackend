@@ -5,13 +5,13 @@ from typing import Optional
 
 @dataclass
 class Advance:
-    id: int
-    employee_id: int
-    amount: Decimal
-    requested_by: Optional[int]
-    requested_at: Optional[datetime]
-    status: str  # 'PENDING' | 'APPROVED' | 'REJECTED' | 'PAID'
-    approved_by: Optional[int]
-    approved_at: Optional[datetime]
-    deducted_from_payroll: bool
-    note: Optional[str]
+    id: Optional[int] = None
+    employee_id: int = None
+    amount: Decimal = None
+    requested_by: Optional[int] = None
+    requested_at: Optional[datetime] = None
+    status: str = None # 'PENDING' | 'APPROVED' | 'REJECTED' | 'PAID'
+    approved_by: Optional[int] = None
+    approved_at: Optional[datetime] = None
+    deducted_from_payroll: bool = None
+    note: Optional[str] = None

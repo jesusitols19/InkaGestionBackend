@@ -8,10 +8,17 @@ from app.infrastructure.payroll_periods_repository import PayrollPeriodRepositor
 from app.infrastructure.payrolls_repository import PayrollRepository
 from app.infrastructure.payroll_items_repository import PayrollItemRepository
 from app.infrastructure.user_repository import UserRepository
+from app.infrastructure.payment_runs_repository import PaymentRunRepository
+from app.infrastructure.payment_runs_item_repository import PaymentRunItemRepository
+from app.infrastructure.advances_repository import AdvanceRepository
 from app.application.payrollperiods.payroll_periods_service import PayrollPeriodService
 from app.application.payroll.payroll_service import PayrollService
 from app.application.employee.employee_service import EmployeeService
 from app.application.attendancerecord.attendance_record_service import AttendanceRecordService
+from app.application.shift.shift_service import ShiftService
+from app.application.employeeshift.employee_shift_service import EmployeeShiftService
+from app.application.paymentruns.payment_runs_service import PaymentRunService
+from app.application.advance.advance_service import AdvanceService
 
 def get_employee_service(db):
     employee_repo = EmployeeRepository(db)
@@ -41,3 +48,29 @@ def get_payroll_service(db):
     attendance_record_repo = AttendanceRecordRepository(db)
     user_repo = UserRepository(db)
     return PayrollService(payroll_repo, employee_repo, payroll_periods_repo, payroll_item_repo, attendance_record_repo, user_repo)
+
+
+def get_shift_service(db):
+    shift_repo = ShiftRepository(db)
+    return ShiftService(shift_repo)
+
+
+def get_employee_shift_service(db):
+    employee_shift_repo = EmployeeShiftRepository(db)
+
+    return EmployeeShiftService(employee_shift_repo)
+
+
+def get_payment_run_service(db):
+
+    payment_run_repo = PaymentRunRepository(db)
+
+    payment_run_item_repo = PaymentRunItemRepository(db)
+
+    return PaymentRunService(payment_run_repo, payment_run_item_repo)
+
+def get_advance_service(db):
+
+    advance_repo = AdvanceRepository(db)
+
+    return AdvanceService(advance_repo)

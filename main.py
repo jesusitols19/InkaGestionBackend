@@ -8,6 +8,10 @@ from app.presentation.user_routes import router as user_router
 from app.presentation.attendance_record_routes import router as attendance_record_router
 from app.presentation.payroll_periods_routes import router as payroll_period_router
 from app.presentation.payroll_routes import router as payroll_router
+from app.presentation.shift_routes import router as shift_router
+from app.presentation.employee_shift_routes import router as employee_shif_router
+from app.presentation.payment_run_routes import router as payment_run_router
+from app.presentation.advance_routes import router as advance_router
 from app.helpers.jsend_response import jsend_error
 
 app = FastAPI()
@@ -40,3 +44,8 @@ app.include_router(user_router)
 app.include_router(attendance_record_router)
 app.include_router(payroll_period_router)
 app.include_router(payroll_router)
+app.include_router(shift_router)
+app.include_router(employee_shif_router)
+app.include_router(payment_run_router)
+app.include_router(advance_router)
+

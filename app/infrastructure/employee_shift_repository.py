@@ -2,6 +2,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import Column, Date, SmallInteger, Integer, String, Time, TIMESTAMP, or_, text
 from datetime import datetime, date, timedelta, time
 from app.infrastructure.database import Base
+from app.domain.employeeshift import EmployeeShift
+from app.helpers.orm_mapper import to_entity, to_model
 
 class EmployeeShiftModel(Base):
     __tablename__ = "employee_shifts"
@@ -28,3 +30,17 @@ class EmployeeShiftRepository:
         if not employeeShift:
             return None
         return employeeShift
+    
+    def get_all_employee_shifts(self) -> list[EmployeeShift]:
+        shift_models = self.db.query(EmployeeShiftModel).all()
+        return [to_entity(shift_model, EmployeeShift) for shift_model in shift_models]
+    
+    def assign_shift_to_employee(self, employee_shift: EmployeeShift) -> EmployeeShift:
+
+        new_employee_shift = to_model(employee_shift, EmployeeShiftModel)
+
+        self.db.add(new_employee_shift)
+        self.db.commit()
+        self.db.refresh(new_employee_shift)
+
+        return to_entity(new_employee_shift, EmployeeShift)
