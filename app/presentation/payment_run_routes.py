@@ -8,6 +8,12 @@ from app.application.paymentrunitem.payment_run_items_dto import PaymentRunItemC
 router = APIRouter()
 
 
+@router.get("/get-all-payment-runs")
+def get_all_payment_run(db: Session = Depends(get_db)):
+    service = get_payment_run_service(db)
+    response = service.get_all_payment_run()
+    return response
+
 @router.post("/create-payment-run/{created_by}")
 def create_payment_run(created_by: int, db: Session = Depends(get_db)):
     service = get_payment_run_service(db)

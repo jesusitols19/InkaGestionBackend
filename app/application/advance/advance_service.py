@@ -10,6 +10,9 @@ class AdvanceService:
         self.repo = repo
 
 
+    def get_all_advances(self):
+        return jsend_success(self.repo.get_all())
+
     def request_advance(self, dto : AdvanceRequestDTO):
         entity = Advance(**dto.__dict__)
         return jsend_success(self.repo.request_advance(entity))

@@ -12,6 +12,9 @@ class PaymentRunService:
         self.repo = repo
         self.paymentRunItemRepo = paymentRunItemRepo
 
+    def get_all_payment_run(self):
+        return jsend_success(self.repo.get_all())
+
 
     def create_payment_run(self, created_by : int):
         run = PaymentRun(created_by=created_by)

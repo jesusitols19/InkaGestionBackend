@@ -11,6 +11,16 @@ from app.infrastructure.user_repository import UserRepository
 from app.infrastructure.payment_runs_repository import PaymentRunRepository
 from app.infrastructure.payment_runs_item_repository import PaymentRunItemRepository
 from app.infrastructure.advances_repository import AdvanceRepository
+from app.infrastructure.views.dashboard.v_costos_personal_mensual_repository import VCostosPersonalMensualRepository
+from app.infrastructure.views.dashboard.v_eficiencia_general_hoy_repository import VEficienciaGeneralHoyRepository
+from app.infrastructure.views.dashboard.v_gasto_personal_total_repository import VGastoPersonalTotalRepository
+from app.infrastructure.views.dashboard.v_horas_trabajadas_total_general_repository import VHorasTrabajadasTotalGeneralRepository
+from app.infrastructure.views.dashboard.v_promedio_horas_hoy_repository import VPromedioHorasHoyRepository
+from app.infrastructure.views.dashboard.v_total_empleados_repository import VTotalEmpleadosRepository
+from app.infrastructure.views.dashboard.v_pagos_pendientes_repository import VPagosPendientesRepository
+from app.infrastructure.views.dashboard.v_resumen_asistencia_hoy_repository import VResumenAsistenciaHoyRepository
+from app.infrastructure.system_activity_repository import SystemActivityRepository
+from app.infrastructure.scheduled_reports_repository import ScheduledReportRepository
 from app.application.payrollperiods.payroll_periods_service import PayrollPeriodService
 from app.application.payroll.payroll_service import PayrollService
 from app.application.employee.employee_service import EmployeeService
@@ -19,6 +29,9 @@ from app.application.shift.shift_service import ShiftService
 from app.application.employeeshift.employee_shift_service import EmployeeShiftService
 from app.application.paymentruns.payment_runs_service import PaymentRunService
 from app.application.advance.advance_service import AdvanceService
+from app.application.dashboard.dashboard_service import DashboardService
+from app.application.systemactivity.system_activity_service import SystemActivityService
+from app.application.scheduledreport.scheduled_reports_service import ScheduledReportService 
 
 def get_employee_service(db):
     employee_repo = EmployeeRepository(db)
@@ -74,3 +87,48 @@ def get_advance_service(db):
     advance_repo = AdvanceRepository(db)
 
     return AdvanceService(advance_repo)
+
+def get_dashboard_service(db):
+    
+
+    costosPersonalMensualRepository = VCostosPersonalMensualRepository(db)
+
+    eficienciaGeneralHoyRepository = VEficienciaGeneralHoyRepository(db)
+
+    gastoPersonalTotalRepository = VGastoPersonalTotalRepository(db)
+
+    horasTrabajadasTotalGeneralRepository = VHorasTrabajadasTotalGeneralRepository(db)
+
+    promedioHorasHoyRepository = VPromedioHorasHoyRepository(db)
+
+    totalEmpleadosRepository = VTotalEmpleadosRepository(db)
+
+    pagosPendientesRepository = VPagosPendientesRepository(db)
+
+    resumenAsistenciaHoyRepository = VResumenAsistenciaHoyRepository(db)
+
+    return DashboardService(
+        costosPersonalMensualRepository, 
+        eficienciaGeneralHoyRepository, 
+        gastoPersonalTotalRepository, 
+        horasTrabajadasTotalGeneralRepository, 
+        promedioHorasHoyRepository, 
+        totalEmpleadosRepository,
+        pagosPendientesRepository,
+        resumenAsistenciaHoyRepository)
+
+def get_system_activity_service(db):
+    systemActivityRepository = SystemActivityRepository(db)
+
+    return SystemActivityService(
+        systemActivityRepository
+    )
+
+
+def get_scheduled_report_service(db):
+
+    scheduledReportRepository = ScheduledReportRepository(db)
+
+    return ScheduledReportService(
+        scheduledReportRepository
+    )
