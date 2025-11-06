@@ -21,14 +21,14 @@ def create_scheduled_report(dto: ScheduledReportCreateDTO, db: Session = Depends
 
 
 @router.put("/update-scheduled-report")
-def create_scheduled_report(dto: ScheduledReportUpdateDTO, db: Session = Depends(get_db)):
+def update_scheduled_report(dto: ScheduledReportUpdateDTO, db: Session = Depends(get_db)):
     service = get_scheduled_report_service(db)
     return service.update_report(dto)
 
 @router.post("/execute-manual")
-def execute_reports_now(db: Session = Depends(get_db)):
+async def execute_reports_now(db: Session = Depends(get_db)):
     service = get_scheduled_report_service(db)
-    return service.execute_due_reports()
+    return await service.execute_due_reports()
 
 @router.get("/get-mysql-views")
 def get_mysql_views(db: Session = Depends(get_db)):

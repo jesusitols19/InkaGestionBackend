@@ -41,10 +41,22 @@ class ScheduledReportRepository:
         return to_entity(model,ScheduledReport)
     
     def update_report(self, scheduledReport: ScheduledReport):
-        model = to_model(scheduledReport,ScheduledReportModel)
+
+        
+        existing_report = self.db.query(ScheduledReportModel).filter(ScheduledReportModel.id == scheduledReport.id).first()
+    
+        if not existing_report:
+            return "No existe un reporte con ese id"
+        
+        for key, value in scheduledReport.__dict__.items():
+            setattr(existing_report, key, value)
+
         self.db.commit()
-        self.db.refresh(model)
-        return to_entity(model,ScheduledReport)
+        self.db.refresh(existing_report)
+
+        return "Si se pudo hacer"
+
+        # return to_entity(existing_report,ScheduledReport)
 
 
     def get_due_reports(self):
@@ -56,17 +68,25 @@ class ScheduledReportRepository:
         return [to_entity(report, ScheduledReport) for report in reports]
     
     def update_run_dates(self, scheduledReport: ScheduledReport):
-        
-        report = to_model(scheduledReport,ScheduledReportModel) 
+
+        existing_report = self.db.query(ScheduledReportModel).filter(ScheduledReportModel.id == scheduledReport.id).first()
+
         now = datetime.now()
-        report.last_run = now
-        if report.frequency == 'DAILY':
-            report.next_run = now + timedelta(days=1)
-        elif report.frequency == 'WEEKLY':
-            report.next_run = now + timedelta(weeks=1)
-        elif report.frequency == 'MONTHLY':
-            report.next_run = now + timedelta(days=30)
+
+        scheduledReport.last_run = now
+
+        if scheduledReport.frequency == 'DAILY':
+            scheduledReport.next_run = now + timedelta(days=1)
+        elif scheduledReport.frequency == 'WEEKLY':
+            scheduledReport.next_run = now + timedelta(weeks=1)
+        elif scheduledReport.frequency == 'MONTHLY':
+            scheduledReport.next_run = now + timedelta(days=30)
+
+        for key, value in scheduledReport.__dict__.items():
+            setattr(existing_report, key, value)
+        
         self.db.commit()
+        self.db.refresh(existing_report)
 
     def get_mysql_views(self):
         sql = text("SHOW FULL TABLES WHERE Table_type = 'VIEW'")

@@ -11,6 +11,11 @@ class ScheduledReportCreateDTO(BaseModel):
 
 class ScheduledReportUpdateDTO(BaseModel):
     id: int
-    start_date: str
-    end_date: str
-    status: str
+    name: str
+    frequency: str
+    next_run: datetime
+    last_run: datetime
+    recipients: str
+    template: str
+    active: bool
+    created_by: int

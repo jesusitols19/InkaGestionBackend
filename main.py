@@ -63,28 +63,28 @@ app.include_router(system_activity_router)
 app.include_router(scheduled_report_router)
 
 
-def run_scheduled_reports():
-    db = SessionLocal()
-    try:
-        repo = ScheduledReportRepository(db)
-        service = ScheduledReportService(repo)
-        print("Ejecutando tarea programada de reportes...")
+# def run_scheduled_reports():
+#     db = SessionLocal()
+#     try:
+#         repo = ScheduledReportRepository(db)
+#         service = ScheduledReportService(repo)
+#         print("Ejecutando tarea programada de reportes...")
 
-        asyncio.run(service.execute_due_reports())
+#         asyncio.run(service.execute_due_reports())
 
-        db.commit()
-    except Exception as e:
-        print(f"Error al ejecutar reportes programados: {e}")
-    finally:
-        db.close()
+#         db.commit()
+#     except Exception as e:
+#         print(f"Error al ejecutar reportes programados: {e}")
+#     finally:
+#         db.close()
 
 
-scheduler = BackgroundScheduler()
-scheduler.add_job(run_scheduled_reports, 'interval', minutes=60)
-scheduler.start()
+# scheduler = BackgroundScheduler()
+# scheduler.add_job(run_scheduled_reports, 'interval', minutes=60)
+# scheduler.start()
 
-@app.on_event("shutdown")
-def shutdown_event():
-    scheduler.shutdown()
+# @app.on_event("shutdown")
+# def shutdown_event():
+#     scheduler.shutdown()
 
 

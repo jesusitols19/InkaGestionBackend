@@ -34,10 +34,10 @@ class ScheduledReportService:
 
         for r in due_reports:
 
-            generated_file = self._generate_report(r)
+            # generated_file = self._generate_report(r)
 
-            if r.recipients:
-                await self._send_report_by_email(r, generated_file)
+            # if r.recipients:
+            #     await self._send_report_by_email(r, generated_file)
 
             self.repo.update_run_dates(r)
             results.append(r.name)
