@@ -11,3 +11,9 @@ pip install -r requirements.txt
 
 uvicorn main:app --reload
 
+-- Activar el entorno virtual
+venv\Scripts\activate
+
+
+-- Desactivar el entorno virtual
+deactivate

@@ -2,11 +2,11 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import asyncio
-from apscheduler.schedulers.background import BackgroundScheduler
+
+#from app.scheduler.schedulers.background import BackgroundScheduler
 from app.infrastructure.database import SessionLocal
 from app.infrastructure.scheduled_reports_repository import ScheduledReportRepository
 from app.application.scheduledreport.scheduled_reports_service import ScheduledReportService
-
 
 from app.presentation.role_routes import router as role_router
 from app.presentation.employee_routes import router as employee_router
@@ -24,6 +24,8 @@ from app.presentation.system_activity_routes import router as system_activity_ro
 from app.presentation.scheduled_report_routes import router as scheduled_report_router
 from app.helpers.jsend_response import jsend_error
 
+
+from app.presentation.ia_routes import router as ia_router
 app = FastAPI()
 
 origins = [
@@ -61,7 +63,7 @@ app.include_router(advance_router)
 app.include_router(dashboard_router)
 app.include_router(system_activity_router)
 app.include_router(scheduled_report_router)
-
+app.include_router(ia_router, prefix="/api/v1/ia", tags=["Inteligencia Artificial"])
 
 # def run_scheduled_reports():
 #     db = SessionLocal()
