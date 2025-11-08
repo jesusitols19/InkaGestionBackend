@@ -37,6 +37,15 @@ class AdvanceRepository:
     def find_pending(self):
         return self.db.query(AdvanceModel).filter(AdvanceModel.status == "PENDING").all()
     
+    def find_by_employee_and_status(self, employee_id: int, status: str):
+        
+        list_advances = self.db.query(AdvanceModel).filter(
+            AdvanceModel.employee_id == employee_id,
+            AdvanceModel.status == status
+        ).all()
+
+        return [to_entity(adv, Advance) for adv in list_advances]
+    
     def request_advance(self, advance : Advance) -> Advance:
 
         new_advance = to_model(advance, AdvanceModel)
@@ -49,10 +58,17 @@ class AdvanceRepository:
     
     def update_advance(self, advance : Advance):
 
-        approve_advance = to_model(advance, AdvanceModel)
+        existing_advance = self.db.query(AdvanceModel).filter(AdvanceModel.id == advance.id).first()
+
+        if not existing_advance:
+            return "No existe un adelanto con ese id"
+        
+
+        for key, value in advance.__dict__.items():
+            setattr(existing_advance, key, value)
 
         self.db.commit()
 
-        self.db.refresh(approve_advance)
+        self.db.refresh(existing_advance)
 
-        return to_entity(approve_advance, Advance)
+        return to_entity(existing_advance, Advance)

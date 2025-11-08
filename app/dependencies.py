@@ -21,6 +21,7 @@ from app.infrastructure.views.dashboard.v_pagos_pendientes_repository import VPa
 from app.infrastructure.views.dashboard.v_resumen_asistencia_hoy_repository import VResumenAsistenciaHoyRepository
 from app.infrastructure.system_activity_repository import SystemActivityRepository
 from app.infrastructure.scheduled_reports_repository import ScheduledReportRepository
+from app.infrastructure.advances_repository import AdvanceRepository
 from app.application.payrollperiods.payroll_periods_service import PayrollPeriodService
 from app.application.payroll.payroll_service import PayrollService
 from app.application.employee.employee_service import EmployeeService
@@ -60,7 +61,8 @@ def get_payroll_service(db):
     payroll_item_repo = PayrollItemRepository(db)
     attendance_record_repo = AttendanceRecordRepository(db)
     user_repo = UserRepository(db)
-    return PayrollService(payroll_repo, employee_repo, payroll_periods_repo, payroll_item_repo, attendance_record_repo, user_repo)
+    advance_repo = AdvanceRepository(db)
+    return PayrollService(payroll_repo, employee_repo, payroll_periods_repo, payroll_item_repo, attendance_record_repo, user_repo, advance_repo)
 
 
 def get_shift_service(db):

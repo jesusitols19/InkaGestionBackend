@@ -42,9 +42,15 @@ class PaymentRunRepository:
 
     def update(self, paymentrun : PaymentRun):
 
-        updatePaymentRun = to_model(paymentrun, PaymentRunModel)
+        existing_payment_run = self.db.query(PaymentRunModel).filter(PaymentRunModel.id == paymentrun.id).first()
+
+        if not existing_payment_run:
+            return "No existe un pago con ese id"
+
+        for key, value in paymentrun.__dict__.items():
+            setattr(existing_payment_run, key, value)
 
         self.db.commit()
-        self.db.refresh(updatePaymentRun)
+        self.db.refresh(existing_payment_run)
 
-        return to_entity(updatePaymentRun, PaymentRun)
+        return to_entity(existing_payment_run, PaymentRun)

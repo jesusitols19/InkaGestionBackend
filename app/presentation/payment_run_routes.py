@@ -26,10 +26,10 @@ def create_payment_run(dto: PaymentRunItemCreateDTO, db: Session = Depends(get_d
     response = service.add_item(dto)
     return response
 
-@router.put("/generate-file_bank/{run_id}/{file_path}")
-def generate_file_bank(run_id: int, file_path: str, db: Session = Depends(get_db)):
+@router.put("/generate-file_bank/{run_id}")
+def generate_file_bank(run_id: int, db: Session = Depends(get_db)):
     service = get_payment_run_service(db)
-    response = service.generate_file_bank(run_id, file_path)
+    response = service.generate_file_bank(run_id)
     return response
 
 @router.put("/close-run/{run_id}")

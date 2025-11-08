@@ -9,6 +9,7 @@ from app.infrastructure.payroll_periods_repository import PayrollPeriodRepositor
 from app.infrastructure.attendance_record_repository import AttendanceRecordRepository
 from app.infrastructure.payroll_items_repository import PayrollItemRepository
 from app.infrastructure.user_repository import UserRepository
+from app.infrastructure.advances_repository import AdvanceRepository
 from app.helpers.jsend_response import jsend_success, jsend_fail
 
 
@@ -22,7 +23,8 @@ class PayrollService:
             payroll_periods_repo: PayrollPeriodRepository,
             payroll_item_repo: PayrollItemRepository,
             attendance_record_repo: AttendanceRecordRepository,
-            user_repo: UserRepository):
+            user_repo: UserRepository,
+            advance_repo: AdvanceRepository):
         
         self.repo = repo
         self.employee_repo = employee_repo
@@ -30,6 +32,7 @@ class PayrollService:
         self.payroll_item_repo = payroll_item_repo
         self.attendance_record_repo = attendance_record_repo
         self.user_repo = user_repo
+        self.advance_repo = advance_repo
 
     # def get_all_payrolls(self):
     #     payrolls = self.repo.get_all()
@@ -106,6 +109,20 @@ class PayrollService:
             description="Descuento AFP (10%)",
             amount=afp
         ))
+
+        # advances = self.advance_repo.find_by_employee_and_status(dto.employee_id, "PAID")
+
+        # sum_advances = 0.0
+        # for adv in advances:
+        #     if adv.approved_at >= period.start_date and adv.approved_at <= period.end_date:
+        #         sum_advances += adv.amount
+
+        # if sum_advances > 0:
+        #     deductions.append(PayrollItem(
+        #         item_type="DEDUCTION",
+        #         description="Adelantos de sueldo",
+        #         amount=sum_advances
+        #     ))
 
         # tardanzas = self.attendance_record_repo.count_tardiness_by_employee_and_period(dto.employee_id, dto.period_id) or 0
         # tardanza_deduction = tardanzas * 10
