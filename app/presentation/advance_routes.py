@@ -7,6 +7,12 @@ from app.application.advance.advance_dto import AdvanceRequestDTO, AdvanceApprov
 
 router = APIRouter()
 
+@router.get("/get-all-advances")
+def get_all_advances(db: Session = Depends(get_db)):
+    service = get_advance_service(db)
+    response = service.get_all_advances()
+    return response
+
 
 @router.post("/request-advance")
 def request_advance(dto: AdvanceRequestDTO, db: Session = Depends(get_db)):

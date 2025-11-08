@@ -20,6 +20,9 @@ class PaymentRunRepository:
     def __init__(self, db: Session):
         self.db = db
 
+    def get_all(self):
+        return self.db.query(PaymentRunModel).all()
+
     def create_payment_runs(self, paymentruns : PaymentRun) -> PaymentRun:
 
         newPaymentRun = to_model(paymentruns, PaymentRunModel)
