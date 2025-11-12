@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, TIMESTAMP, text
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, TIMESTAMP, text, SmallInteger
 from sqlalchemy.orm import relationship, Session
 from app.infrastructure.database import Base
 from app.domain.user import User
@@ -11,6 +11,7 @@ class UserModel(Base):
     correo = Column(String(150), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
     active = Column(Boolean, nullable=False, server_default=text("TRUE"))
+    failed_login_attempts = Column(SmallInteger, nullable=False, server_default=text("0"))
     role_id = Column(Integer, ForeignKey("roles.id"), nullable=False, default=2)
     last_login = Column(DateTime, nullable=True)
     created_at = Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
@@ -58,7 +59,24 @@ class UserRepository:
         self.db.add(user)
         self.db.commit()
         return user
-    
+
+    def increment_failed_login_attempts(self, user: UserModel):
+        user.failed_login_attempts += 1
+        self.db.add(user)
+        self.db.commit()
+        return user
+
+    def deactivate_user(self, user: UserModel):
+        user.active = False
+        self.db.add(user)
+        self.db.commit()
+        return user
+
+    def reset_failed_login_attempts(self, user: UserModel):
+        user.failed_login_attempts = 0
+        self.db.add(user)
+        self.db.commit()
+        return user
 
     def activate(self, user_id: int):
         user = self.db.query(UserModel).filter(UserModel.id == user_id).first()
@@ -67,6 +85,7 @@ class UserRepository:
             return False
         
         user.active = True
+        user.failed_login_attempts = 0  
 
         self.db.commit()
         self.db.refresh(user)
@@ -92,8 +111,8 @@ class UserRepository:
             role_id=row.role_id,
             password_hash=row.password_hash,
             active=row.active,
+            failed_login_attempts=row.failed_login_attempts,
             last_login=row.last_login,
             created_at=row.created_at,
             updated_at=row.updated_at
         )
-
