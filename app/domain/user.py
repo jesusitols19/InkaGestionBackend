@@ -10,6 +10,7 @@ class User:
     role_id: int
     password_hash: str
     active: bool
+    failed_login_attempts: int
     last_login: datetime | None
     created_at: datetime | None
     updated_at: datetime | None
