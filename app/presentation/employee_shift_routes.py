@@ -17,3 +17,9 @@ def get_all_shift(db: Session = Depends(get_db)):
     service = get_employee_shift_service(db)
     response = service.get_all_employee_shift()
     return response
+
+@router.get("/get-employee-shifts-with-details")
+def get_employee_shifts_with_details(db: Session = Depends(get_db)):
+    service = get_employee_shift_service(db)
+    response = service.get_employee_shifts_with_details()
+    return response

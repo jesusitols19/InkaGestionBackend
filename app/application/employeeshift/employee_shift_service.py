@@ -15,3 +15,7 @@ class EmployeeShiftService:
     
     def get_all_employee_shift(self):
         return jsend_success(self.repo.get_all_employee_shifts())
+    
+
+    def get_employee_shifts_with_details(self):
+        return jsend_success(self.repo.get_employee_shifts_with_details())

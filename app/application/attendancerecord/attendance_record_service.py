@@ -20,6 +20,20 @@ class AttendanceRecordService:
         self.shift_repo = shift_repo
 
 
+    OFFICE_LAT = -12.0453  # ejemplo Lima
+    OFFICE_LNG = -77.0311
+    MAX_DISTANCE_METERS = 100  # tolerancia
+
+    def haversine(self, lat1, lon1, lat2, lon2):
+        from math import radians, sin, cos, sqrt, atan2
+        R = 6371000  # radio de la Tierra en metros
+        dlat = radians(lat2 - lat1)
+        dlon = radians(lon2 - lon1)
+        a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
+        c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        return R * c
+
+
     def get_attendance(self, employee_id: int, limit: int = 50):
 
         empleado = self.employee_repo.find_by_employee_id(employee_id)
@@ -77,52 +91,50 @@ class AttendanceRecordService:
     def start_attendance(self, dto: AttendanceStartDTO):
 
         empleado = self.employee_repo.find_by_employee_id(dto.employee_id)
-
         if not empleado:
             return jsend_fail({"message": "Empleado no encontrado"})
         
         today = date.today()
-
         employee_shift = self.employee_shift_repo.get_active_employee_shift(dto.employee_id, today)
-
         if not employee_shift:
             return jsend_fail({"message": "Empleado no tiene turno asignado hoy"})
         
         shift = self.shift_repo.get_shift_by_id(employee_shift.shift_id)
-
         if not shift:
             return jsend_fail({"message": "Empleado no tiene turno asignado hoy"})
         
-        active = self.repo.get_active_attendance(dto.employee_id, today)
-        if active:
-            return jsend_fail({"message": "Ya existe una asistencia activa para este empleado hoy"})
-        
-        
-        exists_today = self.repo.exists_record_today(dto.employee_id, today)
-        if exists_today:
-            return jsend_fail({"message": "Ya existe un registro para este empleado en la fecha de hoy"})
-        
         timestamp = dto.timestamp or datetime.now()
 
-        shift_start_dt = datetime.combine(timestamp.date(), shift.start_time)
-        shift_end_dt = datetime.combine(timestamp.date(), shift.end_time)
+        crosses_midnight = shift.end_time < shift.start_time
 
-        # --- Si el turno cruza medianoche (por ejemplo 22:00 - 06:00) ---
 
-        if shift.end_time < shift.start_time:
+        if crosses_midnight and timestamp.time() < shift.end_time:
+            shift_date = timestamp.date() - timedelta(days=1)
+        else:
+            shift_date = timestamp.date()
+
+
+        shift_start_dt = datetime.combine(shift_date, shift.start_time)
+        shift_end_dt = datetime.combine(shift_date, shift.end_time)
+
+        if crosses_midnight:
             shift_end_dt += timedelta(days=1)
 
-        # --- Validación: no registrar demasiado temprano ---
-
-        allowed_early_dt = shift_start_dt - timedelta(minutes=10)
-
-        if timestamp < allowed_early_dt:
-            return jsend_fail({
-                "message": "Solo puedes registrar asistencia hasta 10 minutos antes del inicio de tu turno."
-            })
+        active = self.repo.get_active_attendance(dto.employee_id, shift_date)
+        if active:
+            return jsend_fail({"message": "Ya existe una asistencia activa para este empleado en este turno"})
+        
+        exists_today = self.repo.exists_record_today(dto.employee_id, shift_date)
+        if exists_today:
+            return jsend_fail({"message": "Ya existe un registro para este empleado en esta fecha"})
         
 
-        # --- Validación: no registrar después del turno ---
+        allowed_early_dt = shift_start_dt - timedelta(minutes=7)
+        if timestamp < allowed_early_dt:
+            return jsend_fail({
+                "message": "Solo puedes registrar asistencia hasta 7 minutos antes del inicio de tu turno."
+            })
+
 
         allowed_late_dt = shift_end_dt + timedelta(minutes=(shift.tolerance_minutes or 0))
         if timestamp > allowed_late_dt:
@@ -130,20 +142,124 @@ class AttendanceRecordService:
                 "message": "No puedes registrar asistencia después de que terminó tu turno."
             })
 
+
         allowed_dt = shift_start_dt + timedelta(minutes=shift.tolerance_minutes or 0)
         status = "A_TIEMPO" if timestamp <= allowed_dt else "TARDANZA"
 
-        
-        rec = self.repo.create_start(dto.employee_id, dto.supervisor_user_id, timestamp, status, dto.justification)
+        # --- Validar ubicación (si aplica) ---
+        location_valid = False
+        if dto.lat and dto.lng:
+            distance = self.haversine(dto.lat, dto.lng, self.OFFICE_LAT, self.OFFICE_LNG)
+            location_valid = distance <= self.MAX_DISTANCE_METERS
+
+        # --- Crear registro ---
+        rec = self.repo.create_start(
+            dto.employee_id,
+            dto.supervisor_user_id,
+            timestamp,
+            status,
+            dto.justification,
+            dto.lat,
+            dto.lng,
+            location_valid
+        )
 
         return jsend_success({
-            "message": "Asistencia iniciada",
+            "message": "Asistencia iniciada correctamente",
             "attendance": {
                 "id": rec.id,
                 "time_in": rec.time_in,
                 "status": rec.status
             }
         })
+    
+
+    # def start_attendance(self, dto: AttendanceStartDTO):
+
+    #     empleado = self.employee_repo.find_by_employee_id(dto.employee_id)
+
+    #     if not empleado:
+    #         return jsend_fail({"message": "Empleado no encontrado"})
+        
+    #     today = date.today()
+
+    #     employee_shift = self.employee_shift_repo.get_active_employee_shift(dto.employee_id, today)
+
+    #     if not employee_shift:
+    #         return jsend_fail({"message": "Empleado no tiene turno asignado hoy"})
+        
+    #     shift = self.shift_repo.get_shift_by_id(employee_shift.shift_id)
+
+    #     if not shift:
+    #         return jsend_fail({"message": "Empleado no tiene turno asignado hoy"})
+        
+    #     active = self.repo.get_active_attendance(dto.employee_id, today)
+    #     if active:
+    #         return jsend_fail({"message": "Ya existe una asistencia activa para este empleado hoy"})
+        
+        
+    #     exists_today = self.repo.exists_record_today(dto.employee_id, today)
+    #     if exists_today:
+    #         return jsend_fail({"message": "Ya existe un registro para este empleado en la fecha de hoy"})
+        
+    #     timestamp = dto.timestamp or datetime.now()
+
+    #     shift_start_dt = datetime.combine(timestamp.date(), shift.start_time)
+    #     shift_end_dt = datetime.combine(timestamp.date(), shift.end_time)
+
+    #     # --- Si el turno cruza medianoche (por ejemplo 22:00 - 06:00) ---
+
+    #     if shift.end_time < shift.start_time:
+    #         shift_end_dt += timedelta(days=1)
+
+    #     # --- Validación: no registrar demasiado temprano ---
+
+    #     allowed_early_dt = shift_start_dt - timedelta(minutes=7)
+
+    #     if timestamp < allowed_early_dt:
+    #         return jsend_fail({
+    #             "message": "Solo puedes registrar asistencia hasta 7 minutos antes del inicio de tu turno."
+    #         })
+        
+
+    #     # --- Validación: no registrar después del turno ---
+
+    #     allowed_late_dt = shift_end_dt + timedelta(minutes=(shift.tolerance_minutes or 0))
+    #     if timestamp > allowed_late_dt:
+    #         return jsend_fail({
+    #             "message": "No puedes registrar asistencia después de que terminó tu turno."
+    #         })
+
+    #     allowed_dt = shift_start_dt + timedelta(minutes=shift.tolerance_minutes or 0)
+    #     status = "A_TIEMPO" if timestamp <= allowed_dt else "TARDANZA"
+
+        
+    #     location_valid = False
+    #     if dto.lat and dto.lng:
+    #         distance = self.haversine(dto.lat, dto.lng, self.OFFICE_LAT, self.OFFICE_LNG)
+    #         location_valid = distance <= self.MAX_DISTANCE_METERS
+
+
+    #     # rec = self.repo.create_start(dto.employee_id, dto.supervisor_user_id, timestamp, status, dto.justification)
+    #     rec = self.repo.create_start(
+    #         dto.employee_id,
+    #         dto.supervisor_user_id,
+    #         timestamp,
+    #         status,
+    #         dto.justification,
+    #         dto.lat,
+    #         dto.lng,
+    #         location_valid,
+    #     )
+
+    #     return jsend_success({
+    #         "message": "Asistencia iniciada",
+    #         "attendance": {
+    #             "id": rec.id,
+    #             "time_in": rec.time_in,
+    #             "status": rec.status
+    #         }
+    #     })
     
 
     def end_attendance(self, dto: AttendanceEndDTO):
@@ -205,8 +321,14 @@ class AttendanceRecordService:
         overtime = max(0.0, work_hours - shift_duration)
         overtime_hours = float(Decimal(overtime).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
+
+        location_valid = False
+        if dto.lat and dto.lng:
+            distance = self.haversine(dto.lat, dto.lng, self.OFFICE_LAT, self.OFFICE_LNG)
+            location_valid = distance <= self.MAX_DISTANCE_METERS
+
         # --- Guardar registro ---
-        rec = self.repo.end_attendance(active, timestamp, work_hours, overtime_hours)
+        rec = self.repo.end_attendance(active, timestamp, work_hours, overtime_hours, dto.lat, dto.lng, location_valid)
 
         return jsend_success({
             "message": "Asistencia finalizada",
@@ -217,6 +339,7 @@ class AttendanceRecordService:
                 "overtime_hours": rec.overtime_hours
             }
         })
+    
 
     
 

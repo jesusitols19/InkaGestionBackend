@@ -104,14 +104,19 @@ class AttendanceRecordRepository:
     
 
     # Crear registro de inicio
-    def create_start(self, employee_id: int, supervisor_user_id: int, timestamp: datetime, status: str, justification: Optional[str] = None):
+    def create_start(self, employee_id: int, supervisor_user_id: int, 
+                     timestamp: datetime, status: str, justification: Optional[str] = None,
+                     lat: Optional[float] = None, lng: Optional[float] = None, location_valid: bool = False):
         rec = AttendanceRecordModel(
             employee_id=employee_id,
             supervisor_user_id=supervisor_user_id,
             record_date=timestamp.date(),
             time_in=timestamp,
             status=status,
-            justification=justification
+            justification=justification,
+            lat_in=lat,
+            lng_in=lng,
+            location_valid_in=location_valid,
         )
         self.db.add(rec)
         self.db.commit()
@@ -119,10 +124,16 @@ class AttendanceRecordRepository:
         return rec
     
     # Finalizar registro activo
-    def end_attendance(self, attendance_record: AttendanceRecordModel, timestamp: datetime, work_hours: Decimal, overtime_hours: Decimal):
+    def end_attendance(self, attendance_record: AttendanceRecordModel, timestamp: datetime, 
+                       work_hours: Decimal, overtime_hours: Decimal,
+                       lat: Optional[float] = None, lng: Optional[float] = None,
+                       location_valid: bool = False):
         attendance_record.time_out = timestamp
         attendance_record.work_hours = work_hours
         attendance_record.overtime_hours = overtime_hours
+        attendance_record.lat_out = lat
+        attendance_record.lng_out = lng
+        attendance_record.location_valid_out = location_valid
         self.db.commit()
         self.db.refresh(attendance_record)
         return attendance_record

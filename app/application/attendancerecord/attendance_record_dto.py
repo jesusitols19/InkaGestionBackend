@@ -8,11 +8,15 @@ class AttendanceStartDTO(BaseModel):
     supervisor_user_id: int
     timestamp: Optional[datetime] = None
     justification: Optional[str] = None
+    lat: Optional[float]
+    lng: Optional[float]
 
 class AttendanceEndDTO(BaseModel):
     employee_id: int
     supervisor_user_id: int
     timestamp: Optional[datetime] = None
+    lat: Optional[float]
+    lng: Optional[float]
 
 # DTO para filtros si los quisieras
 class AttendanceFilterDTO(BaseModel):

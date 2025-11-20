@@ -25,7 +25,10 @@ class PayrollItemRepository:
         return self.db.query(PayrollItemModel).all()
 
     def get_by_payroll(self, payroll_id: int):
-        return self.db.query(PayrollItemModel).filter(PayrollItemModel.payroll_id == payroll_id).all()
+
+        payrollItems = self.db.query(PayrollItemModel).filter(PayrollItemModel.payroll_id == payroll_id).all()
+
+        return [to_entity(item, PayrollItem) for item in payrollItems]
 
     def find_by_id(self, item_id: int):
         return self.db.query(PayrollItemModel).filter(PayrollItemModel.id == item_id).first()

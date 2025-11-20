@@ -3,6 +3,8 @@ from sqlalchemy import Column, Date, SmallInteger, Integer, String, Time, TIMEST
 from datetime import datetime, date, timedelta, time
 from app.infrastructure.database import Base
 from app.domain.employeeshift import EmployeeShift
+from app.infrastructure.employee_repository import EmployeeModel
+from app.infrastructure.shift_repository import ShiftModel
 from app.helpers.orm_mapper import to_entity, to_model
 
 class EmployeeShiftModel(Base):
@@ -44,3 +46,34 @@ class EmployeeShiftRepository:
         self.db.refresh(new_employee_shift)
 
         return to_entity(new_employee_shift, EmployeeShift)
+    
+
+    def get_employee_shifts_with_details(self):
+        query = (
+            self.db.query(
+                EmployeeShiftModel,
+                EmployeeModel.nombre.label("employee_name"),
+                ShiftModel.name.label("shift_name"),
+                ShiftModel.start_time,
+                ShiftModel.end_time
+            )
+            .join(EmployeeModel, EmployeeShiftModel.employee_id == EmployeeModel.id)
+            .join(ShiftModel, EmployeeShiftModel.shift_id == ShiftModel.id)
+        )
+
+        results = query.all()
+
+        # puedes devolver una lista de diccionarios más legible
+        return [
+            {
+                "employee_id": es.employee_id,
+                "employee_name": employee_name,
+                "shift_id": es.shift_id,
+                "shift_name": shift_name,
+                "start_time": start_time,
+                "end_time": end_time,
+                "start_date": es.start_date,
+                "end_date": es.end_date,
+            }
+            for es, employee_name, shift_name, start_time, end_time in results
+        ]
