@@ -48,7 +48,7 @@ def _formatear_hoja_excel(worksheet: Worksheet, currency_columns: list = []):
                 cell.number_format = '"S/ "#,##0.00'
 
 # ==============================================================================
-# 1. PREDICCIÓN DE COSTOS (MEJORADA CON MÉTRICAS CIENTÍFICAS)
+# 1. PREDICCIÓN DE COSTOS (MEJORADA CON MÉTRICAS Y DATOS PARA GRÁFICO)
 # ==============================================================================
 @router.get("/predecir-costos-planilla", summary="REQ-35/36: Predicción Multivariable con Validación Estadística")
 async def predecir_costos_planilla(db: Session = Depends(get_db)):
@@ -69,11 +69,12 @@ async def predecir_costos_planilla(db: Session = Depends(get_db)):
         if df.empty or len(df) < 2:
             return jsend_success(data={
                 "prediccion_costo_siguiente_periodo": 0,
-                "nota": "Insuficientes datos históricos para entrenar el modelo."
+                "nota": "Insuficientes datos históricos para entrenar el modelo (se necesitan al menos 2 periodos)."
             })
 
         # 2. Preparación de Datos (Feature Engineering)
         df['start_date'] = pd.to_datetime(df['start_date'])
+        # Convertimos fechas a números (días desde el primer registro) para la regresión
         df['dias_desde_inicio'] = (df['start_date'] - df['start_date'].min()).dt.days
         
         # X = Variables Independientes (Tiempo y Cantidad de Empleados)
@@ -85,18 +86,30 @@ async def predecir_costos_planilla(db: Session = Depends(get_db)):
         model = LinearRegression()
         model.fit(X, y)
 
-        # 4. Validación del Modelo (Métricas de Calidad para tu Profesor)
+        # 4. Validación del Modelo (Métricas de Calidad)
         y_pred_historico = model.predict(X)
         r2 = r2_score(y, y_pred_historico)      # Coeficiente de Determinación
         mse = mean_squared_error(y, y_pred_historico) # Error Cuadrático Medio
 
         # 5. Predicción Futura
         dias_siguiente = df['dias_desde_inicio'].max() + 30
-        # Asumimos carga laboral constante basada en el último periodo
+        # Asumimos carga laboral constante basada en el último periodo para la proyección
         empleados_actuales = df['num_empleados'].iloc[-1]
         
         prediccion = model.predict(np.array([[dias_siguiente, empleados_actuales]]))
         costo_predicho = round(prediccion[0], 2)
+        
+        # Calcular la fecha real futura para mostrar en el gráfico
+        fecha_futura = df['start_date'].max() + pd.Timedelta(days=30)
+
+        # 6. Preparación de Datos para el Gráfico (Frontend)
+        # Convertimos las fechas históricas a string 'YYYY-MM-DD'
+        grafico_labels = df['start_date'].dt.strftime('%Y-%m-%d').tolist()
+        grafico_data = df['total_cost'].tolist()
+        
+        # Agregamos el punto de la predicción futura
+        grafico_labels.append(fecha_futura.strftime('%Y-%m-%d') + " (Pred)")
+        grafico_data.append(costo_predicho)
 
         return jsend_success(data={
             "prediccion_costo_siguiente_periodo": costo_predicho,
@@ -107,13 +120,18 @@ async def predecir_costos_planilla(db: Session = Depends(get_db)):
                 "error_cuadratico_medio_mse": round(mse, 2)
             },
             "variables_usadas": ["Días transcurridos", "Número de Empleados"],
-            "datos_historicos_usados": len(df)
+            "datos_historicos_usados": len(df),
+            # Datos listos para Chart.js o Recharts
+            "datos_grafico": {
+                "labels": grafico_labels,
+                "valores": grafico_data
+            }
         })
 
     except SQLAlchemyError as e:
-        return jsend_error(message=f"Error BD: {str(e)}")
+        return jsend_error(message=f"Error de Base de Datos: {str(e)}")
     except Exception as e:
-        return jsend_error(message=f"Error IA: {str(e)}")
+        return jsend_error(message=f"Error en Módulo de IA: {str(e)}")
 
 
 # ==============================================================================
