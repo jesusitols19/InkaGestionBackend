@@ -11,6 +11,7 @@ from app.infrastructure.user_repository import UserRepository
 from app.infrastructure.payment_runs_repository import PaymentRunRepository
 from app.infrastructure.payment_runs_item_repository import PaymentRunItemRepository
 from app.infrastructure.advances_repository import AdvanceRepository
+from app.infrastructure.views.dashboard.v_bi_analytics_repository import VBiAnalyticsRepository
 from app.infrastructure.views.dashboard.v_costos_personal_mensual_repository import VCostosPersonalMensualRepository
 from app.infrastructure.views.dashboard.v_eficiencia_general_hoy_repository import VEficienciaGeneralHoyRepository
 from app.infrastructure.views.dashboard.v_gasto_personal_total_repository import VGastoPersonalTotalRepository
@@ -33,12 +34,16 @@ from app.application.advance.advance_service import AdvanceService
 from app.application.dashboard.dashboard_service import DashboardService
 from app.application.systemactivity.system_activity_service import SystemActivityService
 from app.application.scheduledreport.scheduled_reports_service import ScheduledReportService 
+from app.application.area.area_service import AreaService
 
 def get_employee_service(db):
     employee_repo = EmployeeRepository(db)
     area_repo = AreaRepository(db)
     return EmployeeService(employee_repo, area_repo)
 
+def get_area_service(db):
+    area_repo = AreaRepository(db)
+    return AreaService(area_repo)
 
 def get_attendance_record_service(db):
     attendance_record_repo = AttendanceRecordRepository(db)
@@ -92,22 +97,18 @@ def get_advance_service(db):
 
 def get_dashboard_service(db):
     
-
+    # Repositorios existentes (KPIs)
     costosPersonalMensualRepository = VCostosPersonalMensualRepository(db)
-
     eficienciaGeneralHoyRepository = VEficienciaGeneralHoyRepository(db)
-
     gastoPersonalTotalRepository = VGastoPersonalTotalRepository(db)
-
     horasTrabajadasTotalGeneralRepository = VHorasTrabajadasTotalGeneralRepository(db)
-
     promedioHorasHoyRepository = VPromedioHorasHoyRepository(db)
-
     totalEmpleadosRepository = VTotalEmpleadosRepository(db)
-
     pagosPendientesRepository = VPagosPendientesRepository(db)
-
     resumenAsistenciaHoyRepository = VResumenAsistenciaHoyRepository(db)
+
+    # Nuevo Repositorio (BI Charts)
+    biAnalyticsRepository = VBiAnalyticsRepository(db) # <--- INSTANCIA NUEVA
 
     return DashboardService(
         costosPersonalMensualRepository, 
@@ -117,7 +118,9 @@ def get_dashboard_service(db):
         promedioHorasHoyRepository, 
         totalEmpleadosRepository,
         pagosPendientesRepository,
-        resumenAsistenciaHoyRepository)
+        resumenAsistenciaHoyRepository,
+        biAnalyticsRepository # <--- PASAR AL SERVICIO
+    )
 
 def get_system_activity_service(db):
     systemActivityRepository = SystemActivityRepository(db)

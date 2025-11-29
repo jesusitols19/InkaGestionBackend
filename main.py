@@ -23,9 +23,9 @@ from app.presentation.dashboard_routes import router as dashboard_router
 from app.presentation.system_activity_routes import router as system_activity_router
 from app.presentation.scheduled_report_routes import router as scheduled_report_router
 from app.helpers.jsend_response import jsend_error
-
-
+from app.presentation.area_routes import router as area_router
 from app.presentation.ia_routes import router as ia_router
+
 app = FastAPI()
 
 origins = [
@@ -63,6 +63,7 @@ app.include_router(advance_router)
 app.include_router(dashboard_router)
 app.include_router(system_activity_router)
 app.include_router(scheduled_report_router)
+app.include_router(area_router)
 app.include_router(ia_router, prefix="/api/v1/ia", tags=["Inteligencia Artificial"])
 
 # def run_scheduled_reports():
